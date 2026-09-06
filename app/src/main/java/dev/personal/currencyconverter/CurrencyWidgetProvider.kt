@@ -1,8 +1,10 @@
 package dev.personal.currencyconverter
 
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
+import android.content.Intent
 import android.widget.RemoteViews
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +30,56 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
         }
     }
 
+    override fun onReceive(context: Context, intent: Intent) {
+        val appWidgetId = intent.getIntExtra(
+            AppWidgetManager.EXTRA_APPWIDGET_ID,
+            AppWidgetManager.INVALID_APPWIDGET_ID
+        )
+
+        when (intent.action) {
+            ACTION_CYCLE_SOURCE -> {
+                if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                    handleCycle(context, appWidgetId, isSource = true)
+                }
+            }
+            ACTION_CYCLE_TARGET -> {
+                if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                    handleCycle(context, appWidgetId, isSource = false)
+                }
+            }
+            else -> super.onReceive(context, intent)
+        }
+    }
+
+    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+        for (id in appWidgetIds) {
+            WidgetState.clear(context, id)
+        }
+    }
+
+    private fun handleCycle(context: Context, appWidgetId: Int, isSource: Boolean) {
+        val pendingResult = goAsync()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                if (isSource) {
+                    val current = WidgetState.getSource(context, appWidgetId)
+                    WidgetState.setSource(context, appWidgetId, WidgetState.nextCurrency(current))
+                } else {
+                    val current = WidgetState.getTarget(context, appWidgetId)
+                    WidgetState.setTarget(context, appWidgetId, WidgetState.nextCurrency(current))
+                }
+                val appWidgetManager = AppWidgetManager.getInstance(context)
+                updateWidget(context, appWidgetManager, appWidgetId)
+            } finally {
+                pendingResult.finish()
+            }
+        }
+    }
+
     companion object {
+        private const val ACTION_CYCLE_SOURCE = "dev.personal.currencyconverter.ACTION_CYCLE_SOURCE"
+        private const val ACTION_CYCLE_TARGET = "dev.personal.currencyconverter.ACTION_CYCLE_TARGET"
+
         suspend fun updateWidget(
             context: Context,
             appWidgetManager: AppWidgetManager,
@@ -36,20 +87,46 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
             forceRefresh: Boolean = false
         ) {
             val amount = 100.0
-            val source = "EUR"
-            val target = "USD"
+            val source = WidgetState.getSource(context, appWidgetId)
+            val target = WidgetState.getTarget(context, appWidgetId)
 
             val rates = RatesRepository.getRates(context, forceRefresh)
             val result = RatesRepository.convert(amount, source, target, rates)
 
             val views = RemoteViews(context.packageName, R.layout.currency_widget)
-            views.setTextViewText(R.id.sourceText, "${amount.toInt()} $source")
-            views.setTextViewText(
-                R.id.resultText,
-                String.format(Locale.US, "≈ %.2f %s", result, target)
+            views.setTextViewText(R.id.amountText, amount.toInt().toString())
+            views.setTextViewText(R.id.sourceCurrencyButton, "$source ▾")
+            views.setTextViewText(R.id.resultText, String.format(Locale.US, "≈ %.2f", result))
+            views.setTextViewText(R.id.targetCurrencyButton, "$target ▾")
+
+            views.setOnClickPendingIntent(
+                R.id.sourceCurrencyButton,
+                buildCyclePendingIntent(context, appWidgetId, ACTION_CYCLE_SOURCE)
+            )
+            views.setOnClickPendingIntent(
+                R.id.targetCurrencyButton,
+                buildCyclePendingIntent(context, appWidgetId, ACTION_CYCLE_TARGET)
             )
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
+        }
+
+        private fun buildCyclePendingIntent(
+            context: Context,
+            appWidgetId: Int,
+            action: String
+        ): PendingIntent {
+            val intent = Intent(context, CurrencyWidgetProvider::class.java).apply {
+                this.action = action
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            }
+            val requestCode = "$appWidgetId-$action".hashCode()
+            return PendingIntent.getBroadcast(
+                context,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
         }
     }
 }

@@ -8,10 +8,12 @@ import java.net.HttpURLConnection
 import java.net.URL
 import androidx.core.content.edit
 
+import dev.personal.currencyconverter.CurrencyConstants.DEFAULT_SOURCE
+import dev.personal.currencyconverter.CurrencyConstants.EXCHANGE_RATE_URL
+import dev.personal.currencyconverter.CurrencyConstants.TARGET_SYMBOLS
+
 object RatesRepository {
 
-    // EUR is the base currency (implicitly 1.0). This lets us convert every currency uniformly
-    private val TARGET_SYMBOLS = listOf("USD", "PLN", "CHF", "GBP", "INR")
     private const val PREFS_NAME = "currency_widget_prefs"
     private const val KEY_RATES_JSON = "rates_json"
     private const val KEY_TIMESTAMP = "rates_timestamp"
@@ -20,7 +22,7 @@ object RatesRepository {
     private suspend fun fetchFromNetwork(): Map<String, Double>? = withContext(Dispatchers.IO) {
         try {
             val symbols = TARGET_SYMBOLS.joinToString(",")
-            val url = URL("https://api.frankfurter.dev/v1/latest?base=EUR&symbols=$symbols")
+            val url = URL("$EXCHANGE_RATE_URL?base=$DEFAULT_SOURCE&symbols=$symbols")
             val connection = url.openConnection() as HttpURLConnection
             connection.connectTimeout = 5000
             connection.readTimeout = 5000
@@ -30,6 +32,7 @@ object RatesRepository {
             val body = connection.inputStream.bufferedReader().use { it.readText() }
             val ratesJson = JSONObject(body).getJSONObject("rates")
 
+            // EUR is the base currency (implicitly 1.0). This lets us convert every currency uniformly
             val result = mutableMapOf("EUR" to 1.0)
             ratesJson.keys().forEach { key -> result[key] = ratesJson.getDouble(key) }
             result
