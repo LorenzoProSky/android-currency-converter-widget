@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_background"
+    android:padding="16dp"
+    android:gravity="center">
+
+    <TextView
+        android:id="@+id/sourceText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="100 EUR"
+        android:textSize="20sp"
+        android:textColor="#000000" />
+
+    <TextView
+        android:id="@+id/resultText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="≈ 108.50 USD"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="#1A73E8" />
+
+</LinearLayout>
