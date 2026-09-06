@@ -36,6 +36,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.ui.text)
     implementation(libs.material)
     implementation(libs.kotlinx.coroutines.android)
     testImplementation(libs.junit)

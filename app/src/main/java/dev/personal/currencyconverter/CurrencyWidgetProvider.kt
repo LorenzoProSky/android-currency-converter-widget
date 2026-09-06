@@ -11,6 +11,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Locale
 
+import dev.personal.currencyconverter.WidgetActions.ACTION_CYCLE_SOURCE
+import dev.personal.currencyconverter.WidgetActions.ACTION_CYCLE_TARGET
+import dev.personal.currencyconverter.WidgetActions.ACTION_KEYPAD
+import dev.personal.currencyconverter.WidgetActions.ACTION_SWAP
+import dev.personal.currencyconverter.WidgetActions.EXTRA_KEY
+import dev.personal.currencyconverter.WidgetActions.KNOWN_ACTIONS
+import dev.personal.currencyconverter.WidgetActions.digitKeyIds
+
 class CurrencyWidgetProvider : AppWidgetProvider() {
 
     override fun onUpdate(
@@ -43,6 +51,10 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
             ACTION_CYCLE_SOURCE -> handleCycle(context, appWidgetId, isSource = true)
             ACTION_CYCLE_TARGET -> handleCycle(context, appWidgetId, isSource = false)
             ACTION_SWAP -> handleSwap(context, appWidgetId)
+            ACTION_KEYPAD -> {
+                val key = intent.getStringExtra(EXTRA_KEY)
+                if (key != null) handleKeypad(context, appWidgetId, key)
+            }
             else -> super.onReceive(context, intent)
         }
     }
@@ -79,6 +91,25 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
                 val oldTarget = WidgetState.getTarget(context, appWidgetId)
                 WidgetState.setSource(context, appWidgetId, oldTarget)
                 WidgetState.setTarget(context, appWidgetId, oldSource)
+
+                updateWidget(context, AppWidgetManager.getInstance(context), appWidgetId)
+            } finally {
+                pendingResult.finish()
+            }
+        }
+    }
+
+    private fun handleKeypad(context: Context, appWidgetId: Int, key: String) {
+        val pendingResult = goAsync()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val current = WidgetState.getAmount(context, appWidgetId)
+                val updated = when (key) {
+                    "CLEAR" -> WidgetState.clearAmount()
+                    "DOT" -> WidgetState.appendDot(current)
+                    else -> WidgetState.appendDigit(current, key)
+                }
+                WidgetState.setAmount(context, appWidgetId, updated)
                 updateWidget(context, AppWidgetManager.getInstance(context), appWidgetId)
             } finally {
                 pendingResult.finish()
@@ -87,18 +118,14 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
     }
 
     companion object {
-        private const val ACTION_CYCLE_SOURCE = "dev.personal.currencyconverter.ACTION_CYCLE_SOURCE"
-        private const val ACTION_CYCLE_TARGET = "dev.personal.currencyconverter.ACTION_CYCLE_TARGET"
-        private const val ACTION_SWAP = "dev.personal.currencyconverter.ACTION_SWAP"
-        private val KNOWN_ACTIONS = setOf(ACTION_CYCLE_SOURCE, ACTION_CYCLE_TARGET, ACTION_SWAP)
-
         suspend fun updateWidget(
             context: Context,
             appWidgetManager: AppWidgetManager,
             appWidgetId: Int,
             forceRefresh: Boolean = false
         ) {
-            val amount = 100.0
+            val stringAmount = WidgetState.getAmount(context, appWidgetId)
+            val amount = WidgetState.amountStringToDouble(stringAmount)
             val source = WidgetState.getSource(context, appWidgetId)
             val target = WidgetState.getTarget(context, appWidgetId)
 
@@ -106,41 +133,51 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
             val result = RatesRepository.convert(amount, source, target, rates)
 
             val views = RemoteViews(context.packageName, R.layout.currency_widget)
-            views.setTextViewText(R.id.amountText, amount.toInt().toString())
+            views.setTextViewText(R.id.amountText, stringAmount)
             views.setTextViewText(R.id.sourceCurrencyButton, "$source ▾")
-            views.setTextViewText(R.id.resultText, String.format(Locale.US, "≈ %.2f", result))
+            views.setTextViewText(R.id.resultText, String.format(Locale.US, "≈ %,.2f", result))
             views.setTextViewText(R.id.targetCurrencyButton, "$target ▾")
 
             views.setOnClickPendingIntent(
-                R.id.sourceCurrencyButton,
-                buildActionPendingIntent(context, appWidgetId, ACTION_CYCLE_SOURCE)
+                R.id.sourceCurrencyButton, buildPendingIntent(context, appWidgetId, ACTION_CYCLE_SOURCE)
             )
             views.setOnClickPendingIntent(
-                R.id.targetCurrencyButton,
-                buildActionPendingIntent(context, appWidgetId, ACTION_CYCLE_TARGET)
+                R.id.targetCurrencyButton, buildPendingIntent(context, appWidgetId, ACTION_CYCLE_TARGET)
             )
             views.setOnClickPendingIntent(
-                R.id.swapButton,
-                buildActionPendingIntent(context, appWidgetId, ACTION_SWAP)
+                R.id.swapButton, buildPendingIntent(context, appWidgetId, ACTION_SWAP)
+            )
+
+            digitKeyIds.forEach { (digit, viewId) ->
+                views.setOnClickPendingIntent(
+                    viewId, buildPendingIntent(context, appWidgetId, ACTION_KEYPAD, digit)
+                )
+            }
+            views.setOnClickPendingIntent(
+                R.id.keyDot, buildPendingIntent(context, appWidgetId, ACTION_KEYPAD, "DOT")
+            )
+            views.setOnClickPendingIntent(
+                R.id.keyClearAll, buildPendingIntent(context, appWidgetId, ACTION_KEYPAD, "CLEAR")
             )
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 
-        private fun buildActionPendingIntent(
+        private fun buildPendingIntent(
             context: Context,
             appWidgetId: Int,
-            action: String
+            action: String,
+            extraKey: String? = null
         ): PendingIntent {
             val intent = Intent(context, CurrencyWidgetProvider::class.java).apply {
                 this.action = action
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+                if (extraKey != null) putExtra(EXTRA_KEY, extraKey)
             }
-            val requestCode = "$appWidgetId-$action".hashCode()
+            // Unique per (widget, action, key)
+            val requestCode = "$appWidgetId-$action-$extraKey".hashCode()
             return PendingIntent.getBroadcast(
-                context,
-                requestCode,
-                intent,
+                context, requestCode, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
         }

@@ -4,8 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/widget_background"
-    android:padding="16dp"
-    android:gravity="center_vertical">
+    android:padding="12dp">
 
     <!-- Source row -->
     <LinearLayout
@@ -19,9 +18,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="100"
-            android:textSize="22sp"
-            android:textColor="#000000" />
+            android:text="0.00"
+            android:textSize="20sp"
+            android:textColor="#000000"
+            android:maxLines="1"
+            android:ellipsize="start" />
 
         <TextView
             android:id="@+id/sourceCurrencyButton"
@@ -31,7 +32,7 @@
             android:paddingHorizontal="12dp"
             android:paddingVertical="6dp"
             android:text="EUR ▾"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:textStyle="bold"
             android:textColor="#000000" />
     </LinearLayout>
@@ -44,13 +45,13 @@
 
         <TextView
             android:id="@+id/swapButton"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginVertical="4dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginVertical="2dp"
             android:background="@drawable/circle_button_background"
             android:gravity="center"
             android:text="⇅"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:textStyle="bold"
             android:textColor="#000000" />
     </LinearLayout>
@@ -61,17 +62,19 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginTop="10dp">
+        android:layout_marginBottom="8dp">
 
         <TextView
             android:id="@+id/resultText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="≈ 108.50"
-            android:textSize="22sp"
+            android:text="≈ 0.00"
+            android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="#1A73E8" />
+            android:textColor="#1A73E8"
+            android:maxLines="1"
+            android:ellipsize="start" />
 
         <TextView
             android:id="@+id/targetCurrencyButton"
@@ -81,9 +84,58 @@
             android:paddingHorizontal="12dp"
             android:paddingVertical="6dp"
             android:text="USD ▾"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:textStyle="bold"
             android:textColor="#1A73E8" />
+    </LinearLayout>
+
+    <!-- Keypad -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+            <TextView android:id="@+id/key1" style="@style/KeypadKey" android:text="1"/>
+            <TextView android:id="@+id/key2" style="@style/KeypadKey" android:text="2"/>
+            <TextView android:id="@+id/key3" style="@style/KeypadKey" android:text="3"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+            <TextView android:id="@+id/key4" style="@style/KeypadKey" android:text="4"/>
+            <TextView android:id="@+id/key5" style="@style/KeypadKey" android:text="5"/>
+            <TextView android:id="@+id/key6" style="@style/KeypadKey" android:text="6"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+            <TextView android:id="@+id/key7" style="@style/KeypadKey" android:text="7"/>
+            <TextView android:id="@+id/key8" style="@style/KeypadKey" android:text="8"/>
+            <TextView android:id="@+id/key9" style="@style/KeypadKey" android:text="9"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+            <TextView android:id="@+id/keyDot" style="@style/KeypadKey" android:text="."/>
+            <TextView android:id="@+id/key0" style="@style/KeypadKey" android:text="0"/>
+            <TextView android:id="@+id/keyClearAll" style="@style/KeypadKey" android:text="C"/>
+        </LinearLayout>
+
     </LinearLayout>
 
 </LinearLayout>
