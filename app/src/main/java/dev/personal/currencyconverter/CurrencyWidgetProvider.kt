@@ -35,18 +35,14 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
             AppWidgetManager.EXTRA_APPWIDGET_ID,
             AppWidgetManager.INVALID_APPWIDGET_ID
         )
+        if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID && intent.action in KNOWN_ACTIONS) {
+            return // malformed - ignore
+        }
 
         when (intent.action) {
-            ACTION_CYCLE_SOURCE -> {
-                if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
-                    handleCycle(context, appWidgetId, isSource = true)
-                }
-            }
-            ACTION_CYCLE_TARGET -> {
-                if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
-                    handleCycle(context, appWidgetId, isSource = false)
-                }
-            }
+            ACTION_CYCLE_SOURCE -> handleCycle(context, appWidgetId, isSource = true)
+            ACTION_CYCLE_TARGET -> handleCycle(context, appWidgetId, isSource = false)
+            ACTION_SWAP -> handleSwap(context, appWidgetId)
             else -> super.onReceive(context, intent)
         }
     }
@@ -68,8 +64,22 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
                     val current = WidgetState.getTarget(context, appWidgetId)
                     WidgetState.setTarget(context, appWidgetId, WidgetState.nextCurrency(current))
                 }
-                val appWidgetManager = AppWidgetManager.getInstance(context)
-                updateWidget(context, appWidgetManager, appWidgetId)
+                updateWidget(context, AppWidgetManager.getInstance(context), appWidgetId)
+            } finally {
+                pendingResult.finish()
+            }
+        }
+    }
+
+    private fun handleSwap(context: Context, appWidgetId: Int) {
+        val pendingResult = goAsync()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val oldSource = WidgetState.getSource(context, appWidgetId)
+                val oldTarget = WidgetState.getTarget(context, appWidgetId)
+                WidgetState.setSource(context, appWidgetId, oldTarget)
+                WidgetState.setTarget(context, appWidgetId, oldSource)
+                updateWidget(context, AppWidgetManager.getInstance(context), appWidgetId)
             } finally {
                 pendingResult.finish()
             }
@@ -79,6 +89,8 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
     companion object {
         private const val ACTION_CYCLE_SOURCE = "dev.personal.currencyconverter.ACTION_CYCLE_SOURCE"
         private const val ACTION_CYCLE_TARGET = "dev.personal.currencyconverter.ACTION_CYCLE_TARGET"
+        private const val ACTION_SWAP = "dev.personal.currencyconverter.ACTION_SWAP"
+        private val KNOWN_ACTIONS = setOf(ACTION_CYCLE_SOURCE, ACTION_CYCLE_TARGET, ACTION_SWAP)
 
         suspend fun updateWidget(
             context: Context,
@@ -101,17 +113,21 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
 
             views.setOnClickPendingIntent(
                 R.id.sourceCurrencyButton,
-                buildCyclePendingIntent(context, appWidgetId, ACTION_CYCLE_SOURCE)
+                buildActionPendingIntent(context, appWidgetId, ACTION_CYCLE_SOURCE)
             )
             views.setOnClickPendingIntent(
                 R.id.targetCurrencyButton,
-                buildCyclePendingIntent(context, appWidgetId, ACTION_CYCLE_TARGET)
+                buildActionPendingIntent(context, appWidgetId, ACTION_CYCLE_TARGET)
+            )
+            views.setOnClickPendingIntent(
+                R.id.swapButton,
+                buildActionPendingIntent(context, appWidgetId, ACTION_SWAP)
             )
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 
-        private fun buildCyclePendingIntent(
+        private fun buildActionPendingIntent(
             context: Context,
             appWidgetId: Int,
             action: String
