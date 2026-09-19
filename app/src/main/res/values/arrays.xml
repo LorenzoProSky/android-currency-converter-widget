@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="amount_text_sizes">
+        <item>21sp</item>
+        <item>27sp</item>
+        <item>34sp</item>
+    </array>
+</resources>

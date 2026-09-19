@@ -133,9 +133,11 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
             val result = RatesRepository.convert(amount, source, target, rates)
 
             val views = RemoteViews(context.packageName, R.layout.currency_widget)
+
             views.setTextViewText(R.id.amountText, stringAmount)
+            views.setTextViewText(R.id.resultText, formatResultForDisplay(result))
+
             views.setTextViewText(R.id.sourceCurrencyButton, "$source ▾")
-            views.setTextViewText(R.id.resultText, String.format(Locale.US, "≈ %,.2f", result))
             views.setTextViewText(R.id.targetCurrencyButton, "$target ▾")
 
             views.setOnClickPendingIntent(
@@ -180,6 +182,20 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
                 context, requestCode, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
+        }
+
+        private fun formatResultForDisplay(amount: Double): String {
+            if (amount >= 1_000_000) {
+                val millions = amount / 1_000_000
+                val roundedMillions = Math.round(millions * 100) / 100.0
+                return if (roundedMillions >= 1000.0) {
+                    String.format(Locale.US, "%.3fB", amount / 1_000_000_000)
+                } else {
+                    String.format(Locale.US, "%.3fM", millions)
+                }
+            }
+
+            return String.format(Locale.US, "%,.2f", amount)
         }
     }
 }

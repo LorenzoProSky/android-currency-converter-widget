@@ -4,96 +4,124 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/widget_background"
-    android:padding="12dp">
+    android:padding="20dp">
 
-    <!-- Source row -->
-    <LinearLayout
+    <!-- Header -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/amountText"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="0.00"
-            android:textSize="20sp"
-            android:textColor="#000000"
-            android:maxLines="1"
-            android:ellipsize="start" />
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/sourceCurrencyButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/currency_button_background"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="6dp"
-            android:text="EUR ▾"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="#000000" />
-    </LinearLayout>
+            <!-- Source row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
-    <!-- Swap button -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center">
+                <TextView
+                    android:id="@+id/amountText"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical"
+                    android:text="0"
+                    android:textStyle="bold"
+                    android:textColor="#1F1B24"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:includeFontPadding="false"
+                    android:autoSizeTextType="uniform"
+                    android:autoSizePresetSizes="@array/amount_text_sizes" />
 
+                <TextView
+                    android:id="@+id/sourceCurrencyButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="2dp"
+                    android:background="@drawable/currency_pill_background"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="9dp"
+                    android:text="EUR ▾"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#5B21B6" />
+            </LinearLayout>
+
+            <!-- Divider -->
+            <TextView
+                android:id="@+id/divider"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginVertical="16dp"
+                android:background="#ECE7F5"
+                android:text="" />
+
+            <!-- Target row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/resultText"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical"
+                    android:text="0.00"
+                    android:textStyle="bold"
+                    android:textColor="#7C3AED"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:includeFontPadding="false"
+                    android:autoSizeTextType="uniform"
+                    android:autoSizePresetSizes="@array/amount_text_sizes" />
+
+                <TextView
+                    android:id="@+id/targetCurrencyButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="2dp"
+                    android:background="@drawable/currency_pill_background"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="9dp"
+                    android:text="USD ▾"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#5B21B6" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Swap button -->
         <TextView
             android:id="@+id/swapButton"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_marginVertical="2dp"
-            android:background="@drawable/circle_button_background"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="14dp"
+            android:background="@drawable/swap_button_background"
             android:gravity="center"
-            android:text="⇅"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="#000000" />
-    </LinearLayout>
-
-    <!-- Result row -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="8dp">
-
-        <TextView
-            android:id="@+id/resultText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="≈ 0.00"
+            android:includeFontPadding="false"
+            android:paddingBottom="4dp"
+            android:text="↑↓"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="#1A73E8"
-            android:maxLines="1"
-            android:ellipsize="start" />
+            android:textColor="#FFFFFF" />
 
-        <TextView
-            android:id="@+id/targetCurrencyButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/currency_button_background"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="6dp"
-            android:text="USD ▾"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="#1A73E8" />
-    </LinearLayout>
+    </FrameLayout>
 
     <!-- Keypad -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:layout_marginTop="18dp"
         android:orientation="vertical">
 
         <LinearLayout
@@ -131,9 +159,19 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:orientation="horizontal">
-            <TextView android:id="@+id/keyDot" style="@style/KeypadKey" android:text="."/>
-            <TextView android:id="@+id/key0" style="@style/KeypadKey" android:text="0"/>
-            <TextView android:id="@+id/keyClearAll" style="@style/KeypadKey" android:text="C"/>
+            <TextView
+                android:id="@+id/keyDot"
+                style="@style/KeypadKey"
+                android:text="."/>
+            <TextView
+                android:id="@+id/key0"
+                style="@style/KeypadKey"
+                android:text="0"/>
+            <TextView
+                android:id="@+id/keyClearAll"
+                style="@style/KeypadKey"
+                android:text="C"
+                android:textColor="#7C3AED" />
         </LinearLayout>
 
     </LinearLayout>
