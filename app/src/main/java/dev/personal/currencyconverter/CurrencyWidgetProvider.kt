@@ -6,9 +6,6 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.util.Locale
 
 import dev.personal.currencyconverter.WidgetActions.ACTION_CYCLE_SOURCE
@@ -27,15 +24,9 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
         appWidgetIds: IntArray
     ) {
         for (appWidgetId in appWidgetIds) {
-            val pendingResult = goAsync()
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    updateWidget(context, appWidgetManager, appWidgetId)
-                } finally {
-                    pendingResult.finish()
-                }
-            }
+            updateWidget(context, appWidgetManager, appWidgetId)
         }
+        RatesRepository.refreshCacheAsync(context)
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -66,79 +57,75 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
     }
 
     private fun handleCycle(context: Context, appWidgetId: Int, isSource: Boolean) {
-        val pendingResult = goAsync()
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                if (isSource) {
-                    val current = WidgetState.getSource(context, appWidgetId)
-                    WidgetState.setSource(context, appWidgetId, WidgetState.nextCurrency(current))
-                } else {
-                    val current = WidgetState.getTarget(context, appWidgetId)
-                    WidgetState.setTarget(context, appWidgetId, WidgetState.nextCurrency(current))
-                }
-                updateWidget(context, AppWidgetManager.getInstance(context), appWidgetId)
-            } finally {
-                pendingResult.finish()
-            }
+        val appWidgetManager = AppWidgetManager.getInstance(context)
+        if (isSource) {
+            val current = WidgetState.getSource(context, appWidgetId)
+            WidgetState.setSource(context, appWidgetId, WidgetState.nextCurrency(current))
+            updateSourceAndResult(context, appWidgetManager, appWidgetId)
+        } else {
+            val current = WidgetState.getTarget(context, appWidgetId)
+            WidgetState.setTarget(context, appWidgetId, WidgetState.nextCurrency(current))
+            updateTargetAndResult(context, appWidgetManager, appWidgetId)
         }
+        RatesRepository.refreshCacheAsync(context)
     }
 
     private fun handleSwap(context: Context, appWidgetId: Int) {
-        val pendingResult = goAsync()
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val oldSource = WidgetState.getSource(context, appWidgetId)
-                val oldTarget = WidgetState.getTarget(context, appWidgetId)
-                WidgetState.setSource(context, appWidgetId, oldTarget)
-                WidgetState.setTarget(context, appWidgetId, oldSource)
+        val oldSource = WidgetState.getSource(context, appWidgetId)
+        val oldTarget = WidgetState.getTarget(context, appWidgetId)
+        WidgetState.setSource(context, appWidgetId, oldTarget)
+        WidgetState.setTarget(context, appWidgetId, oldSource)
 
-                updateWidget(context, AppWidgetManager.getInstance(context), appWidgetId)
-            } finally {
-                pendingResult.finish()
-            }
-        }
+        updateAfterSwap(context, AppWidgetManager.getInstance(context), appWidgetId)
+        RatesRepository.refreshCacheAsync(context)
     }
 
     private fun handleKeypad(context: Context, appWidgetId: Int, key: String) {
-        val pendingResult = goAsync()
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val current = WidgetState.getAmount(context, appWidgetId)
-                val updated = when (key) {
-                    "CLEAR" -> WidgetState.clearAmount()
-                    "DOT" -> WidgetState.appendDot(current)
-                    else -> WidgetState.appendDigit(current, key)
-                }
-                WidgetState.setAmount(context, appWidgetId, updated)
-                updateWidget(context, AppWidgetManager.getInstance(context), appWidgetId)
-            } finally {
-                pendingResult.finish()
-            }
+        val current = WidgetState.getAmount(context, appWidgetId)
+        val updated = when (key) {
+            "CLEAR" -> WidgetState.clearAmount()
+            "DOT" -> WidgetState.appendDot(current)
+            else -> WidgetState.appendDigit(current, key)
         }
+        WidgetState.setAmount(context, appWidgetId, updated)
+        updateAmountAndResult(context, AppWidgetManager.getInstance(context), appWidgetId)
+        RatesRepository.refreshCacheAsync(context)
     }
 
     companion object {
-        suspend fun updateWidget(
-            context: Context,
-            appWidgetManager: AppWidgetManager,
-            appWidgetId: Int,
-            forceRefresh: Boolean = false
-        ) {
+        private data class WidgetContent(
+            val stringAmount: String,
+            val resultDisplay: String,
+            val source: String,
+            val target: String
+        )
+
+        private fun computeContent(context: Context, appWidgetId: Int): WidgetContent {
             val stringAmount = WidgetState.getAmount(context, appWidgetId)
             val amount = WidgetState.amountStringToDouble(stringAmount)
             val source = WidgetState.getSource(context, appWidgetId)
             val target = WidgetState.getTarget(context, appWidgetId)
+            val result = RatesRepository.convert(amount, source, target, context)
+            return WidgetContent(
+                stringAmount = stringAmount,
+                resultDisplay = result?.let { formatResultForDisplay(it) } ?: "NO DATA",
+                source = source,
+                target = target
+            )
+        }
 
-            val rates = RatesRepository.getRates(context, forceRefresh)
-            val result = RatesRepository.convert(amount, source, target, rates)
-
+        fun updateWidget(
+            context: Context,
+            appWidgetManager: AppWidgetManager,
+            appWidgetId: Int
+        ) {
+            val content = computeContent(context, appWidgetId)
             val views = RemoteViews(context.packageName, R.layout.currency_widget)
 
-            views.setTextViewText(R.id.amountText, stringAmount)
-            views.setTextViewText(R.id.resultText, formatResultForDisplay(result))
-
-            views.setTextViewText(R.id.sourceCurrencyButton, "$source ▾")
-            views.setTextViewText(R.id.targetCurrencyButton, "$target ▾")
+            views.setTextViewText(R.id.amountText, content.stringAmount)
+            views.setTextViewText(R.id.resultText, content.resultDisplay)
+            views.setTextViewText(R.id.sourceCurrencyButton, "${content.source} ▾")
+            views.setTextViewText(R.id.targetCurrencyButton, "${content.target} ▾")
 
             views.setOnClickPendingIntent(
                 R.id.sourceCurrencyButton, buildPendingIntent(context, appWidgetId, ACTION_CYCLE_SOURCE)
@@ -163,6 +150,46 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
             )
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
+        }
+
+        fun updateAmountAndResult(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
+            val content = computeContent(context, appWidgetId)
+            val views = RemoteViews(context.packageName, R.layout.currency_widget)
+            views.setTextViewText(R.id.amountText, content.stringAmount)
+            views.setTextViewText(R.id.resultText, content.resultDisplay)
+            appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
+        }
+
+        fun updateSourceAndResult(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
+            val content = computeContent(context, appWidgetId)
+            val views = RemoteViews(context.packageName, R.layout.currency_widget)
+            views.setTextViewText(R.id.sourceCurrencyButton, "${content.source} ▾")
+            views.setTextViewText(R.id.resultText, content.resultDisplay)
+            appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
+        }
+
+        fun updateTargetAndResult(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
+            val content = computeContent(context, appWidgetId)
+            val views = RemoteViews(context.packageName, R.layout.currency_widget)
+            views.setTextViewText(R.id.targetCurrencyButton, "${content.target} ▾")
+            views.setTextViewText(R.id.resultText, content.resultDisplay)
+            appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
+        }
+
+        fun updateAfterSwap(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
+            val content = computeContent(context, appWidgetId)
+            val views = RemoteViews(context.packageName, R.layout.currency_widget)
+            views.setTextViewText(R.id.sourceCurrencyButton, "${content.source} ▾")
+            views.setTextViewText(R.id.targetCurrencyButton, "${content.target} ▾")
+            views.setTextViewText(R.id.resultText, content.resultDisplay)
+            appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
+        }
+
+        fun updateResult(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
+            val content = computeContent(context, appWidgetId)
+            val views = RemoteViews(context.packageName, R.layout.currency_widget)
+            views.setTextViewText(R.id.resultText, content.resultDisplay)
+            appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
         }
 
         private fun buildPendingIntent(

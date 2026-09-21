@@ -1,12 +1,17 @@
 package dev.personal.currencyconverter
 
 import android.content.Context
+import androidx.core.content.edit
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
-import androidx.core.content.edit
 
 import dev.personal.currencyconverter.CurrencyConstants.DEFAULT_SOURCE
 import dev.personal.currencyconverter.CurrencyConstants.EXCHANGE_RATE_URL
@@ -17,6 +22,7 @@ object RatesRepository {
     private const val PREFS_NAME = "currency_widget_prefs"
     private const val KEY_RATES_JSON = "rates_json"
     private const val KEY_TIMESTAMP = "rates_timestamp"
+    private const val REFRESH_WORK_NAME = "refresh_rates"
     private const val CACHE_DURATION_MS = 60 * 60 * 1000L // 60 minutes
 
     private suspend fun fetchFromNetwork(): Map<String, Double>? = withContext(Dispatchers.IO) {
@@ -66,26 +72,40 @@ object RatesRepository {
         }
     }
 
-    /** Returns the best available EUR-pivoted rates map. */
-    suspend fun getRates(context: Context, forceRefresh: Boolean = false): Map<String, Double> {
-        val cached = readCache(context)
-        val isFresh = cached != null && (System.currentTimeMillis() - cached.second) < CACHE_DURATION_MS
-
-        if (isFresh && !forceRefresh) {
-            return cached.first
-        }
-
-        val fresh = fetchFromNetwork()
-        if (fresh != null) {
-            writeCache(context, fresh)
-            return fresh
-        }
-
-        return cached?.first ?: mapOf("EUR" to 1.0)
+    fun isCacheStale(context: Context): Boolean {
+        val cached = readCache(context) ?: return true
+        return (System.currentTimeMillis() - cached.second) >= CACHE_DURATION_MS
     }
 
-    /** Converts using EUR as the pivot currency: source -> EUR -> target. */
-    fun convert(amount: Double, from: String, to: String, rates: Map<String, Double>): Double {
+    fun refreshCacheAsync(context: Context) {
+        if (!isCacheStale(context)) return
+
+        val request = OneTimeWorkRequestBuilder<RatesRefreshWorker>()
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+            .build()
+
+        // ExistingWorkPolicy.KEEP = if a refresh is already pending or running -> no-op
+        WorkManager.getInstance(context)
+            .enqueueUniqueWork(REFRESH_WORK_NAME, ExistingWorkPolicy.KEEP, request)
+    }
+
+    suspend fun fetchFromNetworkAndCache(context: Context): Boolean {
+        val fresh = fetchFromNetwork() ?: return false
+        writeCache(context, fresh)
+        return true
+    }
+
+    /**
+     * Converts using EUR as the pivot currency: source -> EUR -> target.
+     * Null = no cache yet -> caller shows "NO DATA"
+     **/
+    fun convert(amount: Double, from: String, to: String, context: Context): Double? {
+        val rates = readCache(context)?.first ?: return null // No fallback
+
         if (from == to) return amount
         val rateFrom = rates[from] ?: return amount
         val rateTo = rates[to] ?: return amount

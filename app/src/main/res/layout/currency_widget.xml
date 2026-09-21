@@ -19,7 +19,7 @@
             <!-- Source row -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
@@ -30,13 +30,12 @@
                     android:layout_weight="1"
                     android:gravity="center_vertical"
                     android:text="0"
+                    android:textSize="34sp"
                     android:textStyle="bold"
                     android:textColor="#1F1B24"
                     android:maxLines="1"
                     android:ellipsize="end"
-                    android:includeFontPadding="false"
-                    android:autoSizeTextType="uniform"
-                    android:autoSizePresetSizes="@array/amount_text_sizes" />
+                    android:includeFontPadding="false" />
 
                 <TextView
                     android:id="@+id/sourceCurrencyButton"
@@ -64,7 +63,7 @@
             <!-- Target row -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
@@ -75,13 +74,12 @@
                     android:layout_weight="1"
                     android:gravity="center_vertical"
                     android:text="0.00"
+                    android:textSize="34sp"
                     android:textStyle="bold"
                     android:textColor="#7C3AED"
                     android:maxLines="1"
                     android:ellipsize="end"
-                    android:includeFontPadding="false"
-                    android:autoSizeTextType="uniform"
-                    android:autoSizePresetSizes="@array/amount_text_sizes" />
+                    android:includeFontPadding="false" />
 
                 <TextView
                     android:id="@+id/targetCurrencyButton"
