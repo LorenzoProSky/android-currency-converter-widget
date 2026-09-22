@@ -211,18 +211,26 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
             )
         }
 
+        private val SCALE_TIERS = listOf(
+            1_000_000.0 to "M",
+            1_000_000_000.0 to "B",
+            1_000_000_000_000.0 to "T"
+        )
+
         private fun formatResultForDisplay(amount: Double): String {
-            if (amount >= 1_000_000) {
-                val millions = amount / 1_000_000
-                val roundedMillions = Math.round(millions * 100) / 100.0
-                return if (roundedMillions >= 1000.0) {
-                    String.format(Locale.US, "%.3fB", amount / 1_000_000_000)
-                } else {
-                    String.format(Locale.US, "%.3fM", millions)
-                }
+            if (amount < 1_000_000) {
+                return String.format(Locale.US, "%,.2f", amount)
             }
 
-            return String.format(Locale.US, "%,.2f", amount)
+            for (i in SCALE_TIERS.indices) {
+                val (divisor, suffix) = SCALE_TIERS[i]
+                val scaled = amount / divisor
+                val rounded = Math.round(scaled * 100) / 100.0
+                if (rounded < 1000.0 || i == SCALE_TIERS.lastIndex) {
+                    return String.format(Locale.US, "%.3f%s", scaled, suffix)
+                }
+            }
+            error("SCALE_TIERS must not be empty") // unreachable
         }
     }
 }
