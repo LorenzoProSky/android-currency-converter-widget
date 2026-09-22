@@ -32,7 +32,7 @@
                     android:text="0"
                     android:textSize="34sp"
                     android:textStyle="bold"
-                    android:textColor="#1F1B24"
+                    android:textColor="@color/black"
                     android:maxLines="1"
                     android:ellipsize="end"
                     android:includeFontPadding="false" />
@@ -48,7 +48,7 @@
                     android:text="EUR ▾"
                     android:textSize="15sp"
                     android:textStyle="bold"
-                    android:textColor="#5B21B6" />
+                    android:textColor="@color/accent_text" />
             </LinearLayout>
 
             <!-- Divider -->
@@ -57,7 +57,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginVertical="16dp"
-                android:background="#ECE7F5"
+                android:background="@color/off_white"
                 android:text="" />
 
             <!-- Target row -->
@@ -76,7 +76,7 @@
                     android:text="0.00"
                     android:textSize="34sp"
                     android:textStyle="bold"
-                    android:textColor="#7C3AED"
+                    android:textColor="@color/accent"
                     android:maxLines="1"
                     android:ellipsize="end"
                     android:includeFontPadding="false" />
@@ -92,7 +92,7 @@
                     android:text="USD ▾"
                     android:textSize="15sp"
                     android:textStyle="bold"
-                    android:textColor="#5B21B6" />
+                    android:textColor="@color/accent_text" />
             </LinearLayout>
         </LinearLayout>
 
@@ -110,7 +110,7 @@
             android:text="↑↓"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="#FFFFFF" />
+            android:textColor="@color/white" />
 
     </FrameLayout>
 
@@ -169,7 +169,7 @@
                 android:id="@+id/keyClearAll"
                 style="@style/KeypadKey"
                 android:text="C"
-                android:textColor="#7C3AED" />
+                android:textColor="@color/accent" />
         </LinearLayout>
 
     </LinearLayout>

@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- Whites -->
+    <color name="white">#FFFFFF</color>
+    <color name="almost_white">#F0EDF7</color>
+    <color name="off_white">#ECE7F5</color>
+
+    <!-- Blacks -->
+    <color name="black">#1F1B24</color>
+    <color name="light_black">#2B2733</color>
+
+    <!-- Accents -->
+    <color name="accent">#7C3AED</color>
+    <color name="accent_pressed">#6D28D9</color>
+    <color name="accent_text">#5B21B6</color>
+    <color name="light_accent">#E4D9FA</color>
+
 </resources>
