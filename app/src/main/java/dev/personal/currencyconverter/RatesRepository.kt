@@ -47,7 +47,12 @@ object RatesRepository {
         }
     }
 
+    @Volatile
+    private var memoryCache: Pair<Map<String, Double>, Long>? = null
+
     private fun readCache(context: Context): Pair<Map<String, Double>, Long>? {
+        memoryCache?.let { return it }
+
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val json = prefs.getString(KEY_RATES_JSON, null) ?: return null
         val timestamp = prefs.getLong(KEY_TIMESTAMP, 0L)
@@ -56,7 +61,7 @@ object RatesRepository {
             val obj = JSONObject(json)
             val map = mutableMapOf<String, Double>()
             obj.keys().forEach { key -> map[key] = obj.getDouble(key) }
-            map to timestamp
+            (map to timestamp).also { memoryCache = it }
         } catch (e: Exception) {
             null
         }
@@ -66,10 +71,12 @@ object RatesRepository {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val obj = JSONObject()
         rates.forEach { (key, value) -> obj.put(key, value) }
+        val timestamp = System.currentTimeMillis()
         prefs.edit {
             putString(KEY_RATES_JSON, obj.toString())
-                .putLong(KEY_TIMESTAMP, System.currentTimeMillis())
+                .putLong(KEY_TIMESTAMP, timestamp)
         }
+        memoryCache = rates to timestamp
     }
 
     fun isCacheStale(context: Context): Boolean {

@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.widget.RemoteViews
 import java.util.Locale
 
@@ -38,15 +39,19 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
             return // malformed - ignore
         }
 
-        when (intent.action) {
-            ACTION_CYCLE_SOURCE -> handleCycle(context, appWidgetId, isSource = true)
-            ACTION_CYCLE_TARGET -> handleCycle(context, appWidgetId, isSource = false)
-            ACTION_SWAP -> handleSwap(context, appWidgetId)
-            ACTION_KEYPAD -> {
-                val key = intent.getStringExtra(EXTRA_KEY)
-                if (key != null) handleKeypad(context, appWidgetId, key)
+        try {
+            when (intent.action) {
+                ACTION_CYCLE_SOURCE -> handleCycle(context, appWidgetId, isSource = true)
+                ACTION_CYCLE_TARGET -> handleCycle(context, appWidgetId, isSource = false)
+                ACTION_SWAP -> handleSwap(context, appWidgetId)
+                ACTION_KEYPAD -> {
+                    val key = intent.getStringExtra(EXTRA_KEY)
+                    if (key != null) handleKeypad(context, appWidgetId, key)
+                }
+                else -> super.onReceive(context, intent)
             }
-            else -> super.onReceive(context, intent)
+        } catch (e: Exception) {
+            Log.e("CurrencyWidgetProvider", "onReceive failed for action=${intent.action}", e)
         }
     }
 
@@ -145,9 +150,11 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
             views.setOnClickPendingIntent(
                 R.id.keyDot, buildPendingIntent(context, appWidgetId, ACTION_KEYPAD, "DOT")
             )
+            views.setContentDescription(R.id.swapButton, "Swap currencies")
             views.setOnClickPendingIntent(
                 R.id.keyClearAll, buildPendingIntent(context, appWidgetId, ACTION_KEYPAD, "CLEAR")
             )
+            views.setContentDescription(R.id.keyClearAll, "Clear amount")
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
