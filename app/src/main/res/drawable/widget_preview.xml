@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="250dp"
+    android:height="300dp"
+    android:viewportWidth="250"
+    android:viewportHeight="300">
+
+    <!-- Card -->
+    <path
+        android:fillColor="@color/white"
+        android:pathData="M24,0 L226,0 A24,24 0 0 1 250,24 L250,276 A24,24 0 0 1 226,300 L24,300 A24,24 0 0 1 0,276 L0,24 A24,24 0 0 1 24,0 Z" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="@color/almost_white"
+        android:strokeWidth="2"
+        android:pathData="M24,0 L226,0 A24,24 0 0 1 250,24 L250,276 A24,24 0 0 1 226,300 L24,300 A24,24 0 0 1 0,276 L0,24 A24,24 0 0 1 24,0 Z" />
+
+    <!-- Source row -->
+    <path
+        android:fillColor="@color/black"
+        android:pathData="M30,40 L130,40 L130,64 L30,64 Z" />
+
+    <!-- Currency pills -->
+    <path
+        android:fillColor="@color/almost_white"
+        android:pathData="M176,38 L214,38 A6,6 0 0,1 220,44 L220,60 A6,6 0 0,1 214,66 L176,66 A6,6 0 0,1 170,60 L170,44 A6,6 0 0,1 176,38 Z
+                           M176,108 L214,108 A6,6 0 0,1 220,114 L220,130 A6,6 0 0,1 214,136 L176,136 A6,6 0 0,1 170,130 L170,114 A6,6 0 0,1 176,108 Z" />
+
+    <!-- Keypad: 3 rows x 3 columns -->
+    <path
+        android:fillColor="@color/almost_white"
+        android:pathData="M46,170 L78,170 A6,6 0 0,1 84,176 L84,188 A6,6 0 0,1 78,194 L46,194 A6,6 0 0,1 40,188 L40,176 A6,6 0 0,1 46,170 Z
+                           M110,170 L142,170 A6,6 0 0,1 148,176 L148,188 A6,6 0 0,1 142,194 L110,194 A6,6 0 0,1 104,188 L104,176 A6,6 0 0,1 110,170 Z
+                           M174,170 L206,170 A6,6 0 0,1 212,176 L212,188 A6,6 0 0,1 206,194 L174,194 A6,6 0 0,1 168,188 L168,176 A6,6 0 0,1 174,170 Z
+                           M46,206 L78,206 A6,6 0 0,1 84,212 L84,224 A6,6 0 0,1 78,230 L46,230 A6,6 0 0,1 40,224 L40,212 A6,6 0 0,1 46,206 Z
+                           M110,206 L142,206 A6,6 0 0,1 148,212 L148,224 A6,6 0 0,1 142,230 L110,230 A6,6 0 0,1 104,224 L104,212 A6,6 0 0,1 110,206 Z
+                           M174,206 L206,206 A6,6 0 0,1 212,212 L212,224 A6,6 0 0,1 206,230 L174,230 A6,6 0 0,1 168,224 L168,212 A6,6 0 0,1 174,206 Z
+                           M46,242 L78,242 A6,6 0 0,1 84,248 L84,260 A6,6 0 0,1 78,266 L46,266 A6,6 0 0,1 40,260 L40,248 A6,6 0 0,1 46,242 Z
+                           M110,242 L142,242 A6,6 0 0,1 148,248 L148,260 A6,6 0 0,1 142,266 L110,266 A6,6 0 0,1 104,260 L104,248 A6,6 0 0,1 110,242 Z
+                           M174,242 L206,242 A6,6 0 0,1 212,248 L212,260 A6,6 0 0,1 206,266 L174,266 A6,6 0 0,1 168,260 L168,248 A6,6 0 0,1 174,242 Z" />
+
+    <!-- Divider -->
+    <path
+        android:fillColor="@color/off_white"
+        android:pathData="M20,87 L230,87 L230,89 L20,89 Z" />
+
+    <!-- Swap circle -->
+    <path
+        android:fillColor="@color/accent"
+        android:pathData="M182,88 A14,14 0 1,0 210,88 A14,14 0 1,0 182,88 Z" />
+
+    <!-- Result row -->
+    <path
+        android:fillColor="@color/accent"
+        android:pathData="M30,110 L130,110 L130,134 L30,134 Z" />
+
+</vector>
