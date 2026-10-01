@@ -4,6 +4,7 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- pixel-exact contour extraction and curve simplification via point-density -->
     <path
         android:fillColor="@color/black"
         android:fillType="evenOdd"
