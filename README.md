@@ -2,9 +2,7 @@
 
 A fast, native Android home screen widget for converting currencies. No app to open, no ads, no account, no tracking. Just a widget that sits on your home screen and does one thing well.
 
-![Widget showing a GBP to CHF conversion](resources/screenshots/screenshot_0.jpg)
-
-![Widget showing a EUR to PLN conversion](resources/screenshots/screenshot_1.jpg)
+![Currency Converter Widget](resources/screenshots/screenshot.jpg)
 
 ## Why
 
