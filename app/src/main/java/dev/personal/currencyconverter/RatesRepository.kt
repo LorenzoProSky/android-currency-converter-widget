@@ -23,7 +23,7 @@ object RatesRepository {
     private const val KEY_RATES_JSON = "rates_json"
     private const val KEY_TIMESTAMP = "rates_timestamp"
     private const val REFRESH_WORK_NAME = "refresh_rates"
-    private const val CACHE_DURATION_MS = 60 * 60 * 1000L // 60 minutes
+    private const val CACHE_DURATION_MS = 3 * 60 * 60 * 1000L // 3 hours
 
     private suspend fun fetchFromNetwork(): Map<String, Double>? = withContext(Dispatchers.IO) {
         try {

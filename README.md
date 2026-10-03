@@ -17,7 +17,7 @@ Most currency converter apps make you open the app, wait for it to load, and dig
 - One-tap swap between source and target
 - Built-in keypad: digit entry, decimal point, clear all
 - Always instant: renders from cache first, refreshes rates quietly in the background
-- Exchange rates auto-refresh hourly, only when the widget is actually in use
+- Exchange rates auto-refresh every 3 hours, only when the widget is actually in use
 - Add as many instances as you want: each one remembers its own currencies and amount
 - No ads, no tracking, no app - just the widget
 
@@ -34,7 +34,7 @@ Open the project in Android Studio, let Gradle sync, and hit Run with a device c
 
 ## How it's built
 
-Native Kotlin, built directly on `AppWidgetProvider` and `RemoteViews`. Background refresh runs on `WorkManager`. Exchange rates come from the [Frankfurter API](https://www.frankfurter.app/) (ECB reference rates, no key required).
+Native Kotlin, built directly on `AppWidgetProvider` and `RemoteViews`. Background refresh runs on `WorkManager`. Exchange rates come from the [Frankfurter API](https://www.frankfurter.app/) (daily ECB reference rates, no key required).
 
 You or your agent can read more about it in the [documentation](resources/docs/documentation.md).
 
