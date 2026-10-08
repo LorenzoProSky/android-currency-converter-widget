@@ -15,7 +15,6 @@ import java.net.URL
 
 import dev.personal.currencyconverter.CurrencyConstants.DEFAULT_SOURCE
 import dev.personal.currencyconverter.CurrencyConstants.EXCHANGE_RATE_URL
-import dev.personal.currencyconverter.CurrencyConstants.TARGET_SYMBOLS
 
 object RatesRepository {
 
@@ -27,8 +26,7 @@ object RatesRepository {
 
     private suspend fun fetchFromNetwork(): Map<String, Double>? = withContext(Dispatchers.IO) {
         try {
-            val symbols = TARGET_SYMBOLS.joinToString(",")
-            val url = URL("$EXCHANGE_RATE_URL?base=$DEFAULT_SOURCE&symbols=$symbols")
+            val url = URL("$EXCHANGE_RATE_URL?base=$DEFAULT_SOURCE")
             val connection = url.openConnection() as HttpURLConnection
             connection.connectTimeout = 5000
             connection.readTimeout = 5000

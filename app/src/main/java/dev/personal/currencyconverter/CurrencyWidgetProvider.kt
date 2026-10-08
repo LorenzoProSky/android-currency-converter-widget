@@ -63,13 +63,14 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
 
     private fun handleCycle(context: Context, appWidgetId: Int, isSource: Boolean) {
         val appWidgetManager = AppWidgetManager.getInstance(context)
+        val currencies = WidgetState.getCurrencies(context, appWidgetId)
         if (isSource) {
             val current = WidgetState.getSource(context, appWidgetId)
-            WidgetState.setSource(context, appWidgetId, WidgetState.nextCurrency(current))
+            WidgetState.setSource(context, appWidgetId, WidgetState.nextCurrency(current, currencies))
             updateSourceAndResult(context, appWidgetManager, appWidgetId)
         } else {
             val current = WidgetState.getTarget(context, appWidgetId)
-            WidgetState.setTarget(context, appWidgetId, WidgetState.nextCurrency(current))
+            WidgetState.setTarget(context, appWidgetId, WidgetState.nextCurrency(current, currencies))
             updateTargetAndResult(context, appWidgetManager, appWidgetId)
         }
         RatesRepository.refreshCacheAsync(context)
