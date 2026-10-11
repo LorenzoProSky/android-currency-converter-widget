@@ -12,13 +12,24 @@ The launcher app renders the widget, not your process. Your code never draws a p
 
 `CurrencyWidgetProvider` is a `BroadcastReceiver` under the hood, and the single hub for everything:
 
-- `onUpdate()` — fires when a widget is placed. Renders instantly from whatever's cached, then checks if rates are stale.
+- `onUpdate()` — fires when the system asks for a fresh render of an existing widget (after a reboot, for example). Renders instantly from whatever's cached, then checks if rates are stale. It doesn't run for a brand-new widget: Android skips it when a configuration activity is declared, so the configuration screen does that first render instead.
 - `onReceive()` — fires on every tap. Reads a custom action + widget ID (+ a `key` extra for which digit was pressed) off the `Intent`, dispatches to a handler, wrapped in a top-level `try/catch` so a bad action can never take down the whole broadcast.
 - `onDeleted()` — clears that widget's saved state when it's removed, so orphaned prefs don't accumulate.
 
 ### State
 
-`WidgetState` persists each widget's amount, source, and target in `SharedPreferences`, keyed by `appWidgetId`. Every pinned instance is fully independent — two widgets on the same home screen never see each other's state. The amount is stored as the literal typed string, which sidesteps an entire class of parsing/rounding edge cases.
+`WidgetState` persists each widget's amount, source, target, and chosen currency list in `SharedPreferences`, keyed by `appWidgetId`. Every pinned instance is fully independent — two widgets on the same home screen never see each other's state. The amount is stored as the literal typed string, which sidesteps an entire class of parsing/rounding edge cases. The currency list is a comma-separated string of ISO codes, and a widget with nothing stored falls back to EUR/USD.
+
+### Configuration
+
+Placing a widget first opens `CurrencyPickerConfigureActivity`. Android launches it through the `ACTION_APPWIDGET_CONFIGURE` intent, and it's wired up with `android:configure` on the provider. Unlike the widget itself, it's a normal Activity, so it can use regular views.
+
+- The screen lists every currency in `CurrencyCatalog` (30) as a checkbox with a live counter. Confirm stays disabled below 2 selections, and a selection past 10 is refused.
+- It sets `RESULT_CANCELED` up front, so backing out cancels the placement instead of leaving a half-configured widget behind.
+- On confirm it saves the list, picks the starting pair, renders the widget once, and returns `RESULT_OK` with the widget ID. The starting pair is EUR/USD when both are selected, otherwise the first two picks. When editing an existing widget, its current pair is kept as long as both currencies are still in the list.
+- Cycling a currency then moves through that widget's own list, not a global one.
+
+Reconfiguration uses the same screen. `android:widgetFeatures="reconfigurable"` (Android 9+) lets the launcher show an edit button on a placed widget, which reopens the Activity with the existing widget ID. Since it reads the stored list instead of the EUR/USD default, one screen serves both placing and editing.
 
 ### Rendering
 
@@ -34,7 +45,7 @@ Each button is wired to a `PendingIntent` — a sealed capsule telling the launc
 
 ### Rates
 
-`RatesRepository` caches fetched rates as a JSON blob (EUR-pivoted, so one fetch covers every pair among the six currencies) plus a timestamp in `SharedPreferences`, mirrored into an in-memory field to skip re-parsing that JSON on every tap. `convert()` pivots any pair through EUR: divide into EUR, multiply out. `refreshCacheAsync()` checks staleness (3 hours) and, if needed, enqueues `RatesRefreshWorker` through `WorkManager` with `ExistingWorkPolicy.KEEP` — so a burst of taps can never spawn duplicate network calls — constrained to only run when there's a real connection. Critically, the network only ever runs inside that worker, never on the tap path itself, which is what makes every interaction instant regardless of connectivity.
+`RatesRepository` caches fetched rates as a JSON blob (EUR-pivoted, so one fetch covers every pair) plus a timestamp in `SharedPreferences`, mirrored into an in-memory field to skip re-parsing that JSON on every tap. `convert()` pivots any pair through EUR: divide into EUR, multiply out. `refreshCacheAsync()` checks staleness (3 hours) and, if needed, enqueues `RatesRefreshWorker` through `WorkManager` with `ExistingWorkPolicy.KEEP` — so a burst of taps can never spawn duplicate network calls — constrained to only run when there's a real connection. Critically, the network only ever runs inside that worker, never on the tap path itself, which is what makes every interaction instant regardless of connectivity.
 
 ### Icon
 
@@ -42,7 +53,7 @@ An adaptive icon: two flat vector layers (a solid background, a foreground glyph
 
 ## Key decisions and trade-offs
 
-- **Tap-to-cycle currencies, not a picker.** `RemoteViews` has no dropdown/spinner. One tap per change, at the cost of up to 5 taps to reach the furthest currency in the list.
+- **Tap-to-cycle currencies.** `RemoteViews` has no dropdown/spinner. One tap per change, at the cost of up to 9 taps to reach the furthest currency in a 10-currency list. Capping each widget at 10 keeps that worst case bounded.
 - **Calculator-style amount entry, not a cursor.** Digits type in normally, a dedicated dot key handles the decimal, and there's no mid-string editing — no invalid states are possible, since the input can never be malformed.
 - **Always render from cache, refresh in the background.** A tap never waits on the network. The cost is a rate that can be up to 3 hours stale before self-correcting — an explicit trade of perfect freshness for guaranteed responsiveness.
 - **Clear-all instead of delete digit.** `RemoteViews` has no long-press callback, and a long-press on a widget's surface is reserved by the OS for its own move/resize/remove overlay. A dedicated Clear button was the best substitute, preferred over a single digit deletion action.
@@ -52,12 +63,15 @@ An adaptive icon: two flat vector layers (a solid background, a foreground glyph
 
 | File | Role |
 |---|---|
-| `CurrencyWidgetProvider.kt` | Widget lifecycle, tap dispatch, all render functions |
-| `WidgetState.kt` | Per-widget persisted state (amount, source, target) |
-| `RatesRepository.kt` | Rate caching, EUR-pivot conversion, staleness checks |
-| `RatesRefreshWorker.kt` | Background rate fetch via `WorkManager` |
 | `CurrencyConverterApplication.kt` | On-demand `WorkManager` initialization |
-| `WidgetActions.kt` | Shared action/extra constants, digit-key ID map |
-| `CurrencyConstants.kt` | Currency list, API endpoint |
+| `widget/CurrencyWidgetProvider.kt` | Widget lifecycle, tap dispatch, all render functions |
+| `widget/WidgetState.kt` | Per-widget persisted state (amount, source, target, currency list) |
+| `widget/WidgetActions.kt` | Shared action/extra constants, digit-key ID map |
+| `rates/RatesRepository.kt` | Rate caching, EUR-pivot conversion, staleness checks |
+| `rates/RatesRefreshWorker.kt` | Background rate fetch via `WorkManager` |
+| `rates/CurrencyConstants.kt` | API endpoint and base currency |
+| `config/CurrencyPickerConfigureActivity.kt` | Currency picker shown on placement and reconfiguration |
+| `config/CurrencyCatalog.kt` | The 30 selectable currencies, selection limits, default pair |
 | `res/layout/currency_widget.xml` | The widget's UI |
+| `res/layout/activity_currency_picker.xml` | The picker screen's UI |
 | `res/drawable/ic_launcher_*.xml` | Adaptive icon layers |

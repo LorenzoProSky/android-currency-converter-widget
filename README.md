@@ -10,8 +10,9 @@ Most currency converter apps make you open the app, wait for it to load, and dig
 
 ## Features
 
-- Supports EUR, USD, GBP, CHF, PLN, and INR (easily extensible)
-- Tap either currency to cycle through the list, independently
+- 30 currencies to choose from: EUR, USD, GBP, JPY, CHF, CAD, AUD, INR and more
+- Pick 2 to 10 currencies for each widget when you place it, and change them later by long-pressing the widget (Android 9+, on launchers that support it)
+- Tap either currency to cycle through your selection, independently
 - One-tap swap between source and target
 - Built-in keypad: digit entry, decimal point, clear all
 - Always instant: renders from cache first, refreshes rates quietly in the background
@@ -32,7 +33,7 @@ Open the project in Android Studio, let Gradle sync, and hit Run with a device c
 
 ## How it's built
 
-Native Kotlin, built directly on `AppWidgetProvider` and `RemoteViews`. Background refresh runs on `WorkManager`. Exchange rates come from the [Frankfurter API](https://www.frankfurter.app/) (daily ECB reference rates, no key required).
+Native Kotlin, built directly on `AppWidgetProvider` and `RemoteViews`, with a small configuration screen for choosing currencies. Background refresh runs on `WorkManager`. Exchange rates come from the [Frankfurter API](https://www.frankfurter.app/) (daily ECB reference rates, no key required).
 
 You or your agent can read more about it in the [documentation](resources/docs/documentation.md).
 
