@@ -1,4 +1,4 @@
-package dev.personal.currencyconverter
+package dev.personal.currencyconverter.widget
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -7,15 +7,9 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.widget.RemoteViews
+import dev.personal.currencyconverter.R
+import dev.personal.currencyconverter.rates.RatesRepository
 import java.util.Locale
-
-import dev.personal.currencyconverter.WidgetActions.ACTION_CYCLE_SOURCE
-import dev.personal.currencyconverter.WidgetActions.ACTION_CYCLE_TARGET
-import dev.personal.currencyconverter.WidgetActions.ACTION_KEYPAD
-import dev.personal.currencyconverter.WidgetActions.ACTION_SWAP
-import dev.personal.currencyconverter.WidgetActions.EXTRA_KEY
-import dev.personal.currencyconverter.WidgetActions.KNOWN_ACTIONS
-import dev.personal.currencyconverter.WidgetActions.digitKeyIds
 
 class CurrencyWidgetProvider : AppWidgetProvider() {
 
@@ -35,17 +29,17 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
             AppWidgetManager.EXTRA_APPWIDGET_ID,
             AppWidgetManager.INVALID_APPWIDGET_ID
         )
-        if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID && intent.action in KNOWN_ACTIONS) {
+        if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID && intent.action in WidgetActions.KNOWN_ACTIONS) {
             return // malformed - ignore
         }
 
         try {
             when (intent.action) {
-                ACTION_CYCLE_SOURCE -> handleCycle(context, appWidgetId, isSource = true)
-                ACTION_CYCLE_TARGET -> handleCycle(context, appWidgetId, isSource = false)
-                ACTION_SWAP -> handleSwap(context, appWidgetId)
-                ACTION_KEYPAD -> {
-                    val key = intent.getStringExtra(EXTRA_KEY)
+                WidgetActions.ACTION_CYCLE_SOURCE -> handleCycle(context, appWidgetId, isSource = true)
+                WidgetActions.ACTION_CYCLE_TARGET -> handleCycle(context, appWidgetId, isSource = false)
+                WidgetActions.ACTION_SWAP -> handleSwap(context, appWidgetId)
+                WidgetActions.ACTION_KEYPAD -> {
+                    val key = intent.getStringExtra(WidgetActions.EXTRA_KEY)
                     if (key != null) handleKeypad(context, appWidgetId, key)
                 }
                 else -> super.onReceive(context, intent)
@@ -134,26 +128,32 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.targetCurrencyButton, "${content.target} ▾")
 
             views.setOnClickPendingIntent(
-                R.id.sourceCurrencyButton, buildPendingIntent(context, appWidgetId, ACTION_CYCLE_SOURCE)
+                R.id.sourceCurrencyButton, buildPendingIntent(context, appWidgetId,
+                    WidgetActions.ACTION_CYCLE_SOURCE
+                )
             )
             views.setOnClickPendingIntent(
-                R.id.targetCurrencyButton, buildPendingIntent(context, appWidgetId, ACTION_CYCLE_TARGET)
+                R.id.targetCurrencyButton, buildPendingIntent(context, appWidgetId,
+                    WidgetActions.ACTION_CYCLE_TARGET
+                )
             )
             views.setOnClickPendingIntent(
-                R.id.swapButton, buildPendingIntent(context, appWidgetId, ACTION_SWAP)
+                R.id.swapButton, buildPendingIntent(context, appWidgetId, WidgetActions.ACTION_SWAP)
             )
 
-            digitKeyIds.forEach { (digit, viewId) ->
+            WidgetActions.digitKeyIds.forEach { (digit, viewId) ->
                 views.setOnClickPendingIntent(
-                    viewId, buildPendingIntent(context, appWidgetId, ACTION_KEYPAD, digit)
+                    viewId, buildPendingIntent(context, appWidgetId,
+                        WidgetActions.ACTION_KEYPAD, digit)
                 )
             }
             views.setOnClickPendingIntent(
-                R.id.keyDot, buildPendingIntent(context, appWidgetId, ACTION_KEYPAD, "DOT")
+                R.id.keyDot, buildPendingIntent(context, appWidgetId, WidgetActions.ACTION_KEYPAD, "DOT")
             )
             views.setContentDescription(R.id.swapButton, "Swap currencies")
             views.setOnClickPendingIntent(
-                R.id.keyClearAll, buildPendingIntent(context, appWidgetId, ACTION_KEYPAD, "CLEAR")
+                R.id.keyClearAll, buildPendingIntent(context, appWidgetId,
+                    WidgetActions.ACTION_KEYPAD, "CLEAR")
             )
             views.setContentDescription(R.id.keyClearAll, "Clear amount")
 
@@ -209,7 +209,7 @@ class CurrencyWidgetProvider : AppWidgetProvider() {
             val intent = Intent(context, CurrencyWidgetProvider::class.java).apply {
                 this.action = action
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-                if (extraKey != null) putExtra(EXTRA_KEY, extraKey)
+                if (extraKey != null) putExtra(WidgetActions.EXTRA_KEY, extraKey)
             }
             // Unique per (widget, action, key)
             val requestCode = "$appWidgetId-$action-$extraKey".hashCode()

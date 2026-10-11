@@ -1,4 +1,4 @@
-package dev.personal.currencyconverter
+package dev.personal.currencyconverter.config
 
 import android.app.Activity
 import android.appwidget.AppWidgetManager
@@ -10,6 +10,9 @@ import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import dev.personal.currencyconverter.R
+import dev.personal.currencyconverter.widget.CurrencyWidgetProvider
+import dev.personal.currencyconverter.widget.WidgetState
 
 class CurrencyPickerConfigureActivity : Activity() {
 

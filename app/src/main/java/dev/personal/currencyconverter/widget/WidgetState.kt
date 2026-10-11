@@ -1,12 +1,8 @@
-package dev.personal.currencyconverter
+package dev.personal.currencyconverter.widget
 
 import android.content.Context
 import androidx.core.content.edit
-
-import dev.personal.currencyconverter.CurrencyConstants.DEFAULT_CURRENCIES
-import dev.personal.currencyconverter.CurrencyConstants.DEFAULT_SOURCE
-import dev.personal.currencyconverter.CurrencyConstants.DEFAULT_TARGET
-import dev.personal.currencyconverter.CurrencyConstants.MAX_AMOUNT_LENGTH
+import dev.personal.currencyconverter.rates.CurrencyConstants
 
 object WidgetState {
 
@@ -16,10 +12,14 @@ object WidgetState {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun getSource(context: Context, appWidgetId: Int): String =
-        prefs(context).getString("source_$appWidgetId", DEFAULT_SOURCE) ?: DEFAULT_SOURCE
+        prefs(context).getString("source_$appWidgetId",
+            CurrencyConstants.DEFAULT_SOURCE
+        ) ?: CurrencyConstants.DEFAULT_SOURCE
 
     fun getTarget(context: Context, appWidgetId: Int): String =
-        prefs(context).getString("target_$appWidgetId", DEFAULT_TARGET) ?: DEFAULT_TARGET
+        prefs(context).getString("target_$appWidgetId",
+            CurrencyConstants.DEFAULT_TARGET
+        ) ?: CurrencyConstants.DEFAULT_TARGET
 
     fun setSource(context: Context, appWidgetId: Int, currency: String) {
         prefs(context).edit { putString("source_$appWidgetId", currency) }
@@ -39,7 +39,7 @@ object WidgetState {
     fun getCurrencies(context: Context, appWidgetId: Int): List<String> {
         val stored = prefs(context).getString("currencies_$appWidgetId", null)
         return stored?.split(",")?.filter { it.isNotBlank() }
-            ?: DEFAULT_CURRENCIES
+            ?: CurrencyConstants.DEFAULT_CURRENCIES
     }
 
     fun setCurrencies(context: Context, appWidgetId: Int, currencies: List<String>) {
@@ -56,7 +56,7 @@ object WidgetState {
     fun amountStringToDouble(amount: String): Double = amount.toDoubleOrNull() ?: 0.0
 
     fun appendDigit(amount: String, digit: String): String {
-        if (amount.length >= MAX_AMOUNT_LENGTH) return amount
+        if (amount.length >= CurrencyConstants.MAX_AMOUNT_LENGTH) return amount
 
         val dotIndex = amount.indexOf('.')
         if (dotIndex != -1) {

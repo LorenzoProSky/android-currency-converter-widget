@@ -1,4 +1,4 @@
-package dev.personal.currencyconverter
+package dev.personal.currencyconverter.rates
 
 import android.content.Context
 import androidx.core.content.edit
@@ -13,9 +13,6 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-import dev.personal.currencyconverter.CurrencyConstants.DEFAULT_SOURCE
-import dev.personal.currencyconverter.CurrencyConstants.EXCHANGE_RATE_URL
-
 object RatesRepository {
 
     private const val PREFS_NAME = "currency_widget_prefs"
@@ -26,7 +23,8 @@ object RatesRepository {
 
     private suspend fun fetchFromNetwork(): Map<String, Double>? = withContext(Dispatchers.IO) {
         try {
-            val url = URL("$EXCHANGE_RATE_URL?base=$DEFAULT_SOURCE")
+            val url =
+                URL("${CurrencyConstants.EXCHANGE_RATE_URL}?base=${CurrencyConstants.DEFAULT_SOURCE}")
             val connection = url.openConnection() as HttpURLConnection
             connection.connectTimeout = 5000
             connection.readTimeout = 5000

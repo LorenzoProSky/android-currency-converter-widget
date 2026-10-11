@@ -25,7 +25,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".CurrencyPickerConfigureActivity"
+            android:name=".config.CurrencyPickerConfigureActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
@@ -33,7 +33,7 @@
         </activity>
 
         <receiver
-            android:name=".CurrencyWidgetProvider"
+            android:name=".widget.CurrencyWidgetProvider"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

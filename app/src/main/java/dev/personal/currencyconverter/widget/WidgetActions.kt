@@ -1,4 +1,6 @@
-package dev.personal.currencyconverter
+package dev.personal.currencyconverter.widget
+
+import dev.personal.currencyconverter.R
 
 object WidgetActions {
     const val ACTION_CYCLE_SOURCE = "dev.personal.currencyconverter.ACTION_CYCLE_SOURCE"

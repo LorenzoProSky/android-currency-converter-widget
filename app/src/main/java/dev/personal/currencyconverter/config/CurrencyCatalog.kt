@@ -1,4 +1,4 @@
-package dev.personal.currencyconverter
+package dev.personal.currencyconverter.config
 
 object CurrencyCatalog {
 

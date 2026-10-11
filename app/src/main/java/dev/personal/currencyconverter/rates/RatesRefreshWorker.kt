@@ -1,10 +1,11 @@
-package dev.personal.currencyconverter
+package dev.personal.currencyconverter.rates
 
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import dev.personal.currencyconverter.widget.CurrencyWidgetProvider
 
 class RatesRefreshWorker(
     context: Context,

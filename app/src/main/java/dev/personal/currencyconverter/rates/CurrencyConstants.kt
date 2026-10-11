@@ -1,4 +1,4 @@
-package dev.personal.currencyconverter
+package dev.personal.currencyconverter.rates
 
 object CurrencyConstants {
     const val DEFAULT_SOURCE = "EUR"
